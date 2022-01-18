@@ -17,6 +17,10 @@
 const unsigned int width = 800;
 const unsigned int height = 800;
 
+// for maximum frames set to -1
+const unsigned int maxFrames = 30;
+const double minFrametime = 1 / (double)(maxFrames);
+
 // Vertices coordinates
 // Vertices coordinates
 GLfloat vertices[] =
@@ -84,6 +88,9 @@ GLuint lightIndices[] =
 
 
 int main() {
+
+	// framerate
+	std::cout << "maxFrames: " << maxFrames << "\tminFrametine: " << minFrametime << "\n";
 
 	glfwInit();
 
@@ -158,37 +165,60 @@ int main() {
 
 	// Camera
 	Camera camera(width, height, glm::vec3(0.0f, 0.0f, 2.0f));
-	
+
+	// frame rate
+	bool firstFrame = true;
+	double timer = glfwGetTime();
+	double timeDiff;
+
+	unsigned long long int frameCounter = 0;
+	const double frameRateTime = glfwGetTime();
 
 	while (!glfwWindowShouldClose(window)) {
-		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		timeDiff = glfwGetTime() - timer;
+		// std::cout << "main loop at " << (timeDiff + timer) << "\tdiff: " << timeDiff << "\t";
+		if (timeDiff >= minFrametime || firstFrame) {
+			// std::cout << "new frame" << "\n";
 
-		camera.Inputs(window);
-		camera.updateMatrix(45.0f, 0.1f, 100.0f);
+			glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// tell OpenGL the shader program
-		shaderProgram.Activate();
-		glUniform3f(glad_glGetUniformLocation(shaderProgram.ID, "camPos"), camera.Position.x, camera.Position.y, camera.Position.z);
-		camera.Matrix(shaderProgram, "camMatrix");
+			camera.Inputs(window);
+			camera.updateMatrix(45.0f, 0.1f, 100.0f);
 
-		pngTexture.Bind();
-		// bind VAO so OpenGL knows to use it
-		VAO1.Bind();
-		// draw using a primitive
-		// glDrawArrays(GL_TRIANGLES, 0, 3);
-		glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(int), GL_UNSIGNED_INT, 0);
+			// tell OpenGL the shader program
+			shaderProgram.Activate();
+			glUniform3f(glad_glGetUniformLocation(shaderProgram.ID, "camPos"), camera.Position.x, camera.Position.y, camera.Position.z);
+			camera.Matrix(shaderProgram, "camMatrix");
 
-		lightShader.Activate();
-		camera.Matrix(lightShader, "camMatrix");
-		lightVAO.Bind();
-		glDrawElements(GL_TRIANGLES, sizeof(lightIndices) / sizeof(int), GL_UNSIGNED_INT, 0);
+			pngTexture.Bind();
+			// bind VAO so OpenGL knows to use it
+			VAO1.Bind();
+			// draw using a primitive
+			// glDrawArrays(GL_TRIANGLES, 0, 3);
+			glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 
-		glfwSwapBuffers(window);
+			lightShader.Activate();
+			camera.Matrix(lightShader, "camMatrix");
+			lightVAO.Bind();
+			glDrawElements(GL_TRIANGLES, sizeof(lightIndices) / sizeof(int), GL_UNSIGNED_INT, 0);
 
-		// prevent "not responding" = manage all GLFW events
-		glfwPollEvents();
+			glfwSwapBuffers(window);
+
+			// prevent "not responding" = manage all GLFW events
+			glfwPollEvents();
+
+			// frame rate
+			timer = glfwGetTime();
+			if (firstFrame) { firstFrame = false; }
+			frameCounter++;
+		}
+		else {
+			// std::cout << "no new frame" << "\n";
+		}
 	}
+
+	std::cout << "average fps: " << (frameCounter / (glfwGetTime() - frameRateTime)) << "\n";
 
 	VAO1.Delete();
 	lightVAO.Delete();

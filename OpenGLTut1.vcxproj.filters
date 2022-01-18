@@ -15,9 +15,11 @@
     </Filter>
     <Filter Include="Resource Files\Shaders">
       <UniqueIdentifier>{7968dc83-9e6b-4492-a4fe-3ee5fefca839}</UniqueIdentifier>
+      <Extensions>frag;vert</Extensions>
     </Filter>
     <Filter Include="Resource Files\Textures">
       <UniqueIdentifier>{f08c4d63-53aa-4efb-a43a-5d429491b781}</UniqueIdentifier>
+      <Extensions>png;jpeg</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
